@@ -2,13 +2,13 @@
 fastko, fast korean translation. Uses [naver papago api](https://developers.naver.com/docs/common/openapiguide/).
 
 ## Screenshots
-![1](images/1.png)
+![1](https://github.com/preeded/fastko/blob/main/images/1.png)
 
-![2](images/2.png)
+![2](https://github.com/preeded/fastko/blob/main/images/1.png)
 
-![3](images/3.png)
+![3](https://github.com/preeded/fastko/blob/main/images/1.png)
 
-![4](images/4.png)
+![4](https://github.com/preeded/fastko/blob/main/images/1.png)
 
 ## Features
 

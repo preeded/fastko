@@ -3,6 +3,7 @@
   "displayName": "fastko",
   "description": "fastko, fast korean translation. Uses naver papago api.",
   "version": "0.0.1",
+  "publisher": "preeded",
   "engines": {
     "vscode": "^1.73.0"
   },
