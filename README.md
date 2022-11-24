@@ -15,6 +15,8 @@ fastko, fast korean translation. Uses [naver papago api](https://developers.nave
 * Translate selected text
 * Configure source and target language
 * Recognize special symbol(ex. << and >>), and replace to alpabets(A, B, C...)
+* Preprocess spaces
+* Process json elements("test": "test string", ...)
 
 ## Requirements
 
