@@ -1,7 +1,25 @@
 import * as vscode from 'vscode';
 import axios from 'axios';
 
+async function trim(s: string) {
+	let [start, end] = ['', ''];
+	while(s.startsWith(' ') || s.startsWith('\t')) {
+		start += s[0];
+		s = s.slice(1);
+	}
+	while(s.endsWith(' ') || s.endsWith('\t')) {
+		end = s[s.length - 1] + end;
+		s = s.slice(0, -1);
+	}
+	return [s, start, end];
+}
+
+
 async function translate(s: string, id: string, secret: string, src: string, t: string) {
+	// Preprocess
+	const [str, start, end] = await trim(s);
+	
+	// Pick up tags
 	const re = /<.*?>+/g;
 	const found = s.match(re);
 	let count = 0;
@@ -10,6 +28,8 @@ async function translate(s: string, id: string, secret: string, src: string, t: 
 			s = s.replace(i, String.fromCharCode(('A'.charCodeAt(0) + count++)));
 		}
 	}
+
+	// API request
 	// eslint-disable-next-line @typescript-eslint/naming-convention
 	const resp = await axios.post("https://openapi.naver.com/v1/papago/n2mt", new URLSearchParams({ source: src, target: t, text: s }), { headers: { 'Accept-Encoding': 'identity', "X-Naver-Client-Id": id, "X-Naver-Client-Secret": secret }, responseType: "json" }).catch((error) => { console.log(error); }); //https://github.com/axios/axios/issues/5298 must set 'Accept-Encoding': 'identity'
 	if (resp === undefined) {
@@ -17,9 +37,13 @@ async function translate(s: string, id: string, secret: string, src: string, t: 
 	}
 	let data = resp.data["message"]["result"]["translatedText"];
 
+	// Restore tags
 	for (let i = 0; i < count; i++) {
 		data = data.replace(String.fromCharCode(('A'.charCodeAt(0) + i)), found![i]);
 	}
+
+	// Restore spaces
+	data = start + data + end;
 
 	return data;
 }
