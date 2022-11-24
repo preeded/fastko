@@ -108,20 +108,16 @@ async function translate(s: string, id: string, secret: string, src: string, t: 
 async function translateCommand(reverse: boolean = false) {
 	const editor = vscode.window.activeTextEditor;
 	const s = editor?.selection;
-	if (s === undefined) {
-		vscode.window.showInformationMessage("No selected text!");
-		return;
-	}
 	const config = vscode.workspace.getConfiguration("fastko.client");
 	const id = config["id"];
 	const secret = config["secret"];
 	const lang = vscode.workspace.getConfiguration("fastko.lang");
 	const source = lang[reverse ? "target" : "source"];
 	const target = lang[!reverse ? "target" : "source"];
-	const text = editor?.document.getText(s);
+	const text = !s?.isEmpty ? editor?.document.getText(s) : editor?.document.lineAt(editor.selection.active.line).text;
 	if (text === undefined) { return; }
 	const translated = await translate(text, id, secret, source, target);
-	editor?.edit(e => { e.replace(s, translated); });
+	editor?.edit(e => { e.replace(!s?.isEmpty ? s! : editor?.document.lineAt(editor.selection.active.line).range, translated); });
 }
 
 async function translateCommandR() {

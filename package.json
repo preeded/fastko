@@ -20,12 +20,10 @@
       "editor/context": [
         {
           "command": "fastko.translate",
-          "when": "editorHasSelection",
           "group": "fastko@1"
         },
         {
           "command": "fastko.translateR",
-          "when": "editorHasSelection",
           "group": "fastko@2"
         }
       ]
