@@ -67,7 +67,7 @@ async function rawTranslate(s: string, id: string, secret: string, src: string, 
 	// Pick up tags
 	const [str2, found, count] = preprocessTags(s);
 	s = str2;
-
+	console.log(s);
 	// API request
 	// eslint-disable-next-line @typescript-eslint/naming-convention
 	const resp = await axios.post("https://openapi.naver.com/v1/papago/n2mt", new URLSearchParams({ source: src, target: t, text: s }), { headers: { 'Accept-Encoding': 'identity', "X-Naver-Client-Id": id, "X-Naver-Client-Secret": secret }, responseType: "json" }).catch((error) => { console.log(error); }); //https://github.com/axios/axios/issues/5298 must set 'Accept-Encoding': 'identity'
@@ -106,7 +106,7 @@ async function translate(s: string, id: string, secret: string, src: string, t: 
 	else {
 		let result: string[] = [];
 		for (const i of d) {
-			let translated = await rawTranslate(i[1].slice(1, -1), id, secret, src, t);
+			let translated = await rawTranslate(i[1], id, secret, src, t);
 			translated = i[0].replace(i[1], translated);
 			result.push(translated);
 		}
