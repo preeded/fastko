@@ -15,9 +15,19 @@ function trim(s: string) {
 }
 
 function processJSON(s: string) {
-	const re = /[ \t]*".+?": ".+?"/g;
+	const re = /\s*".+?": ".+?",?/g;
+	const re2 = /: ".+"/;
 	const found = s.match(re);
-	return found;
+	let result: [string, string][] = [];
+	if (found !== null) {
+		for (const i of found) {
+			const m = i.match(re2);
+			result.push([i, m![0].slice(3, -1)]);
+		}
+	} else {
+		return null;
+	}
+	return result;
 }
 
 function processJSONString(s: string): [string, string][] | null {
@@ -86,10 +96,9 @@ async function translate(s: string, id: string, secret: string, src: string, t: 
 			return await rawTranslate(s, id, secret, src, t);
 		}
 		let result: string[] = [];
-		const re = /".+"/;
 		for (const i of a) {
 			let translated = await rawTranslate(i[1], id, secret, src, t);
-			translated = i[0].replace(re, '"' + translated + '"');
+			translated = i[0].replace(i[1], translated);
 			result.push(translated);
 		}
 		return result.join('');
@@ -97,9 +106,8 @@ async function translate(s: string, id: string, secret: string, src: string, t: 
 	else {
 		let result: string[] = [];
 		for (const i of d) {
-			const tu = i.split(": ");
-			let translated = await rawTranslate(tu[1].slice(1, -1), id, secret, src, t);
-			translated = tu[0] + ": " + '"' + translated + '"';
+			let translated = await rawTranslate(i[1].slice(1, -1), id, secret, src, t);
+			translated = i[0].replace(i[1], translated);
 			result.push(translated);
 		}
 		return result.join(",\n");
