@@ -20,6 +20,22 @@ function processJSON(s: string) {
 	return found;
 }
 
+function processJSONString(s: string): [string, string][] | null {
+	const re = /[\s,]*".+?"/g;
+	const re2 = /".+"/;
+	const found = s.match(re);
+	let result: [string, string][] = [];
+	if (found !== null) {
+		for (let i of found) {
+			const m = i.match(re2);
+			result.push([i, m![0].slice(1, -1)]);
+		}
+	} else {
+		return null;
+	}
+	return result;
+}
+
 function preprocessTags(s: string): [string, Array<string> | null, number] {
 	const re = /<.*?>+/g;
 	const found = s.match(re);
@@ -65,7 +81,18 @@ async function rawTranslate(s: string, id: string, secret: string, src: string, 
 async function translate(s: string, id: string, secret: string, src: string, t: string) {
 	const d = processJSON(s);
 	if (d === null) {
-		return await rawTranslate(s, id, secret, src, t);
+		const a = processJSONString(s);
+		if (a === null) {
+			return await rawTranslate(s, id, secret, src, t);
+		}
+		let result: string[] = [];
+		const re = /".+"/;
+		for (const i of a) {
+			let translated = await rawTranslate(i[1], id, secret, src, t);
+			translated = i[0].replace(re, '"' + translated + '"');
+			result.push(translated);
+		}
+		return result.join('');
 	}
 	else {
 		let result: string[] = [];
