@@ -1,25 +1,26 @@
 import * as vscode from 'vscode';
 import axios from 'axios';
 
-async function trim(s: string) {
+function trim(s: string) {
 	let [start, end] = ['', ''];
-	while(s.startsWith(' ') || s.startsWith('\t')) {
+	while (s.startsWith(' ') || s.startsWith('\t')) {
 		start += s[0];
 		s = s.slice(1);
 	}
-	while(s.endsWith(' ') || s.endsWith('\t')) {
+	while (s.endsWith(' ') || s.endsWith('\t')) {
 		end = s[s.length - 1] + end;
 		s = s.slice(0, -1);
 	}
 	return [s, start, end];
 }
 
+function processJSON(s: string) {
+	const re = /[ \t]*".+?": ".+?"/g;
+	const found = s.match(re);
+	return found;
+}
 
-async function translate(s: string, id: string, secret: string, src: string, t: string) {
-	// Preprocess
-	const [str, start, end] = await trim(s);
-	
-	// Pick up tags
+function preprocessTags(s: string): [string, Array<string> | null, number] {
 	const re = /<.*?>+/g;
 	const found = s.match(re);
 	let count = 0;
@@ -28,6 +29,18 @@ async function translate(s: string, id: string, secret: string, src: string, t: 
 			s = s.replace(i, String.fromCharCode(('A'.charCodeAt(0) + count++)));
 		}
 	}
+	return [s, found, count];
+}
+
+
+async function rawTranslate(s: string, id: string, secret: string, src: string, t: string) {
+	// Preprocess
+	const [str, start, end] = trim(s);
+	s = str;
+
+	// Pick up tags
+	const [str2, found, count] = preprocessTags(s);
+	s = str2;
 
 	// API request
 	// eslint-disable-next-line @typescript-eslint/naming-convention
@@ -46,6 +59,24 @@ async function translate(s: string, id: string, secret: string, src: string, t: 
 	data = start + data + end;
 
 	return data;
+}
+
+
+async function translate(s: string, id: string, secret: string, src: string, t: string) {
+	const d = processJSON(s);
+	if (d === null) {
+		return await rawTranslate(s, id, secret, src, t);
+	}
+	else {
+		let result: string[] = [];
+		for (const i of d) {
+			const tu = i.split(": ");
+			let translated = await rawTranslate(tu[1].slice(1, -1), id, secret, src, t);
+			translated = tu[0] + ": " + '"' + translated + '"';
+			result.push(translated);
+		}
+		return result.join(",\n");
+	}
 }
 async function translateCommand(reverse: boolean = false) {
 	const editor = vscode.window.activeTextEditor;
