@@ -36,7 +36,6 @@ function processJSONString(s: string): [string, string][] | null {
 	const re3 = /^(?:[\s,]*".+?")+$/;
 	const found = s.match(re);
 	const check = re3.test(s);
-	console.log(check);
 	let result: [string, string][] = [];
 	if (found !== null && check) {
 		for (let i of found) {
@@ -69,15 +68,45 @@ function preprocessTags(s: string): [string, Array<string>, number, number] | nu
 	if (found === null) {
 		return null;
 	}
-	const re2 = / [A-Z]/g;
+	const re2 = / [A-Z] /g;
+	s += ' ';
 	let f = s.match(re2);
 	if (f === null) {
 		if (s[0] === 'A' && s[1] === ' ') {
 			f = [' A'];
 		}
 	}
-	console.log(f);
+	s = s.slice(0, -1);
 	const base = f === null ? 'A'.charCodeAt(0) : f.at(-1)?.charCodeAt(1)! + 1;
+	for (const i of found) {
+		s = s.replace(i, String.fromCharCode((base + count++)));
+	}
+	return [s, found, count, base];
+}
+
+function processVariable(s: string): [string, Array<string>, number, number] | null {
+	const re = /\$[\w\.]+/g;
+	const found = s.match(re);
+	let count = 0;
+	if (found === null) {
+		return null;
+	}
+	const re2 = / [A-Z] /g;
+	s += ' ';
+	let f = s.match(re2);
+	if (f === null) {
+		if (s[0] === 'A' && s[1] === ' ') {
+			f = [' A'];
+		}
+	}
+	s = s.slice(0, -1);
+	let max = 0;
+	for (const i of f!) {
+		if (i.charCodeAt(1) > max) {
+			max = i.charCodeAt(1);
+		}
+	}
+	const base = f === null ? 'A'.charCodeAt(0) : max + 1;
 	for (const i of found) {
 		s = s.replace(i, String.fromCharCode((base + count++)));
 	}
@@ -97,7 +126,12 @@ async function rawTranslate(s: string, id: string, secret: string, src: string, 
 		s = a[0];
 	}
 
-	console.log(s);
+	// Process variables
+	const b = processVariable(s);
+	if (b !== null) {
+		s = b[0];
+	}
+
 	// API request
 	// eslint-disable-next-line @typescript-eslint/naming-convention
 	const resp = await axios.post("https://openapi.naver.com/v1/papago/n2mt", new URLSearchParams({ source: src, target: t, text: s }), { headers: { 'Accept-Encoding': 'identity', "X-Naver-Client-Id": id, "X-Naver-Client-Secret": secret }, responseType: "json" }).catch((error) => { console.log(error); }); //https://github.com/axios/axios/issues/5298 must set 'Accept-Encoding': 'identity'
@@ -106,9 +140,16 @@ async function rawTranslate(s: string, id: string, secret: string, src: string, 
 	}
 	let data = resp.data["message"]["result"]["translatedText"];
 
+	// Restore variables
+	if (b !== null) {
+		for (let i = 0; i < b[2]; i++) {
+			data = data.replace(String.fromCharCode(b[3] + i), b[1][i]);
+		}
+	}
+
+
 	// Restore tags
 	if (a !== null) {
-		console.log(a);
 		for (let i = 0; i < a[2]; i++) {
 			data = data.replace(String.fromCharCode(a[3] + i), a[1][i]);
 		}
@@ -117,7 +158,6 @@ async function rawTranslate(s: string, id: string, secret: string, src: string, 
 	// Restore spaces
 	data = start + data + end;
 
-	console.log(data);
 
 	return data;
 }
