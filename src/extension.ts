@@ -33,9 +33,12 @@ function processJSON(s: string) {
 function processJSONString(s: string): [string, string][] | null {
 	const re = /[\s,]*".+?"/g;
 	const re2 = /".+"/;
+	const re3 = /^(?:[\s,]*".+?")+$/;
 	const found = s.match(re);
+	const check = re3.test(s);
+	console.log(check);
 	let result: [string, string][] = [];
-	if (found !== null) {
+	if (found !== null && check) {
 		for (let i of found) {
 			const m = i.match(re2);
 			result.push([i, m![0].slice(1, -1)]);
@@ -131,6 +134,7 @@ async function translate(s: string, id: string, secret: string, src: string, t: 
 			if (a === null) {
 				return await rawTranslate(s, id, secret, src, t);
 			}
+			console.log("not rawTranslate");
 			let result: string[] = [];
 			for (const i of a!) {
 				let translated = await rawTranslate(i[1], id, secret, src, t);
