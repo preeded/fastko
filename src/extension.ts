@@ -46,16 +46,39 @@ function processJSONString(s: string): [string, string][] | null {
 	return result;
 }
 
-function preprocessTags(s: string): [string, Array<string> | null, number] {
+function processConcatVar(s: string): [string, string[], number] | null {
+	const re = /" \+ .+? \+ "/;
+	const found = s.match(re);
+	if (found === null) {
+		return null;
+	}
+	let count = 0;
+	for (const i of found) {
+		s = s.replace(re, String.fromCharCode(('A'.charCodeAt(0) + count++)));
+	}
+	return [s.slice(1, -1), found, count];
+}
+
+function preprocessTags(s: string): [string, Array<string>, number, number] | null {
 	const re = /<.*?>+/g;
 	const found = s.match(re);
 	let count = 0;
-	if (found !== null) {
-		for (const i of found) {
-			s = s.replace(i, String.fromCharCode(('A'.charCodeAt(0) + count++)));
+	if (found === null) {
+		return null;
+	}
+	const re2 = / [A-Z]/g;
+	let f = s.match(re2);
+	if (f === null) {
+		if (s[0] === 'A' && s[1] === ' ') {
+			f = [' A'];
 		}
 	}
-	return [s, found, count];
+	console.log(f);
+	const base = f === null ? 'A'.charCodeAt(0) : f.at(-1)?.charCodeAt(1)! + 1;
+	for (const i of found) {
+		s = s.replace(i, String.fromCharCode((base + count++)));
+	}
+	return [s, found, count, base];
 }
 
 
@@ -64,9 +87,13 @@ async function rawTranslate(s: string, id: string, secret: string, src: string, 
 	const [str, start, end] = trim(s);
 	s = str;
 
+
 	// Pick up tags
-	const [str2, found, count] = preprocessTags(s);
-	s = str2;
+	const a = preprocessTags(s);
+	if (a !== null) {
+		s = a[0];
+	}
+
 	console.log(s);
 	// API request
 	// eslint-disable-next-line @typescript-eslint/naming-convention
@@ -77,12 +104,17 @@ async function rawTranslate(s: string, id: string, secret: string, src: string, 
 	let data = resp.data["message"]["result"]["translatedText"];
 
 	// Restore tags
-	for (let i = 0; i < count; i++) {
-		data = data.replace(String.fromCharCode(('A'.charCodeAt(0) + i)), found![i]);
+	if (a !== null) {
+		console.log(a);
+		for (let i = 0; i < a[2]; i++) {
+			data = data.replace(String.fromCharCode(a[3] + i), a[1][i]);
+		}
 	}
 
 	// Restore spaces
 	data = start + data + end;
+
+	console.log(data);
 
 	return data;
 }
@@ -91,17 +123,27 @@ async function rawTranslate(s: string, id: string, secret: string, src: string, 
 async function translate(s: string, id: string, secret: string, src: string, t: string) {
 	const d = processJSON(s);
 	if (d === null) {
-		const a = processJSONString(s);
-		if (a === null) {
-			return await rawTranslate(s, id, secret, src, t);
+		console.log("not json");
+		const b = processConcatVar(s);
+		if (b === null) {
+			console.log("not concatvar");
+			const a = processJSONString(s);
+			if (a === null) {
+				return await rawTranslate(s, id, secret, src, t);
+			}
+			let result: string[] = [];
+			for (const i of a!) {
+				let translated = await rawTranslate(i[1], id, secret, src, t);
+				translated = i[0].replace(i[1], translated);
+				result.push(translated);
+			}
+			return result.join('');
 		}
-		let result: string[] = [];
-		for (const i of a) {
-			let translated = await rawTranslate(i[1], id, secret, src, t);
-			translated = i[0].replace(i[1], translated);
-			result.push(translated);
+		let translated = await rawTranslate(b[0], id, secret, src, t);
+		for (let i = 0; i < b[2]; i++) {
+			translated = translated.replace(String.fromCharCode(('A'.charCodeAt(0) + i)), b[1][i].slice(4, -4));
 		}
-		return result.join('');
+		return translated;
 	}
 	else {
 		let result: string[] = [];
