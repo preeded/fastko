@@ -48,17 +48,40 @@ function processJSONString(s: string): [string, string][] | null {
 	return result;
 }
 
-function processConcatVar(s: string): [string, string[], number] | null {
+function getAlphabet(s: string) {
+	const re2 = / [A-Z][ \.]/g;
+	s = ' ' + s + ' ';
+	const found = s.match(re2);
+	if (found === null) {
+		return null;
+	}
+	let max = -1;
+	for (let i of found) {
+		const j = i.charCodeAt(1);
+		max = max > j ? max : j;
+	}
+	const index = s.indexOf(" " + String.fromCharCode(max) + " ");
+	return index;
+}
+
+function getBase(s: string) {
+	const index = getAlphabet(s);
+	const base = index !== null ? s.charCodeAt(index) + 1 : 'A'.charCodeAt(0);
+	return base;
+}
+
+function preprocessConcatVar(s: string): [string, string[], number, number] | null {
 	const re = /" \+ .+? \+ "/;
 	const found = s.match(re);
 	if (found === null) {
 		return null;
 	}
 	let count = 0;
+	const base = getBase(s);
 	for (const i of found) {
-		s = s.replace(re, String.fromCharCode(('A'.charCodeAt(0) + count++)));
+		s = s.replace(re, String.fromCharCode((base + count++)));
 	}
-	return [s.slice(1, -1), found, count];
+	return [s.slice(1, -1), found, count, base];
 }
 
 function preprocessTags(s: string): [string, Array<string>, number, number] | null {
@@ -68,16 +91,7 @@ function preprocessTags(s: string): [string, Array<string>, number, number] | nu
 	if (found === null) {
 		return null;
 	}
-	const re2 = / [A-Z] /g;
-	s += ' ';
-	let f = s.match(re2);
-	if (f === null) {
-		if (s[0] === 'A' && s[1] === ' ') {
-			f = [' A'];
-		}
-	}
-	s = s.slice(0, -1);
-	const base = f === null ? 'A'.charCodeAt(0) : f.at(-1)?.charCodeAt(1)! + 1;
+	const base = getBase(s);
 	for (const i of found) {
 		s = s.replace(i, String.fromCharCode((base + count++)));
 	}
@@ -167,7 +181,7 @@ async function translate(s: string, id: string, secret: string, src: string, t: 
 	const d = processJSON(s);
 	if (d === null) {
 		console.log("not json");
-		const b = processConcatVar(s);
+		const b = preprocessConcatVar(s);
 		if (b === null) {
 			console.log("not concatvar");
 			const a = processJSONString(s);
