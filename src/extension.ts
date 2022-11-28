@@ -105,22 +105,7 @@ function processVariable(s: string): [string, Array<string>, number, number] | n
 	if (found === null) {
 		return null;
 	}
-	const re2 = / [A-Z] /g;
-	s += ' ';
-	let f = s.match(re2);
-	if (f === null) {
-		if (s[0] === 'A' && s[1] === ' ') {
-			f = [' A'];
-		}
-	}
-	s = s.slice(0, -1);
-	let max = 0;
-	for (const i of f!) {
-		if (i.charCodeAt(1) > max) {
-			max = i.charCodeAt(1);
-		}
-	}
-	const base = f === null ? 'A'.charCodeAt(0) : max + 1;
+	const base = getBase(s);
 	for (const i of found) {
 		s = s.replace(i, String.fromCharCode((base + count++)));
 	}
