@@ -49,19 +49,6 @@ function processJSONString(s: string): [string, string][] | null {
 	return result;
 }
 
-function processSomeFrontScript(s: string) {
-	let front = "";
-	while (s[0] === ' ' || s[0] === '\t' || (s.charCodeAt(0) >= 'A'.charCodeAt(0) && s.charCodeAt(0) <= 'Z'.charCodeAt(0))) {
-		front += s[0];
-		s = s.slice(1);
-	}
-	while (front[front.length - 1].charCodeAt(0) >= 'A'.charCodeAt(0) && front[front.length - 1].charCodeAt(0) <= 'Z'.charCodeAt(0)) {
-		s = front[front.length - 1] + s;
-		front = front.slice(0, -1);
-	}
-	return [s, front];
-}
-
 class Preprocessor {
 	matchs: string[];
 	base: number;
@@ -124,13 +111,12 @@ class Preprocessor {
 
 async function rawTranslate(s: string, id: string, secret: string, src: string, t: string) {
 	// Preprocess
-	const [str2, front] = processSomeFrontScript(s);
-	s = str2;
 
 	const p = new Preprocessor();
 
 	const [str, start, end] = trim(s);
 	s = str;
+
 
 	// Process concatvar
 	{
@@ -165,8 +151,7 @@ async function rawTranslate(s: string, id: string, secret: string, src: string, 
 	// Restore
 	data = p.postprocess(data);
 
-	// Restore spaces
-	data = front + start + data + end;
+	data = start + data + end;
 
 	return data;
 }
