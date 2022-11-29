@@ -34,7 +34,7 @@ function processJSON(s: string) {
 function processJSONString(s: string): [string, string][] | null {
 	const re = /[\s,]*".+?"/g;
 	const re2 = /".+"/;
-	const re3 = /" \+ [^"]+ \+ "/;
+	const re3 = /" \+ [^"\s]+ \+ "/;
 	const found = s.match(re);
 	const check = re3.test(s);
 	let result: [string, string][] = [];
@@ -47,6 +47,19 @@ function processJSONString(s: string): [string, string][] | null {
 		return null;
 	}
 	return result;
+}
+
+function processSomeFrontScript(s: string) {
+	let front = "";
+	while (s[0] === ' ' || s[0] === '\t' || (s.charCodeAt(0) >= 'A'.charCodeAt(0) && s.charCodeAt(0) <= 'Z'.charCodeAt(0))) {
+		front += s[0];
+		s = s.slice(1);
+	}
+	while (front[front.length - 1].charCodeAt(0) >= 'A'.charCodeAt(0) && front[front.length - 1].charCodeAt(0) <= 'Z'.charCodeAt(0)) {
+		s = front[front.length - 1] + s;
+		front = front.slice(0, -1);
+	}
+	return [s, front];
 }
 
 class Preprocessor {
@@ -111,6 +124,9 @@ class Preprocessor {
 
 async function rawTranslate(s: string, id: string, secret: string, src: string, t: string) {
 	// Preprocess
+	const [str2, front] = processSomeFrontScript(s);
+	s = str2;
+
 	const p = new Preprocessor();
 
 	const [str, start, end] = trim(s);
@@ -150,8 +166,7 @@ async function rawTranslate(s: string, id: string, secret: string, src: string, 
 	data = p.postprocess(data);
 
 	// Restore spaces
-	data = start + data + end;
-
+	data = front + start + data + end;
 
 	return data;
 }
