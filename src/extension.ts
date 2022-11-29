@@ -2,12 +2,13 @@ import * as vscode from 'vscode';
 import axios from 'axios';
 
 function trim(s: string) {
+	const chars = [' ', '\t', '"', '(', ')', '［', '］', '｛', '｝', "'", '〔', '〕', '〈', '〉', '《', '》', '「', '」', '『', '』', '【', "】"];
 	let [start, end] = ['', ''];
-	while (s.startsWith(' ') || s.startsWith('\t') || s.startsWith('"')) {
+	while (chars.includes(s[0])) {
 		start += s[0];
 		s = s.slice(1);
 	}
-	while (s.endsWith(' ') || s.endsWith('\t') || s.endsWith('"')) {
+	while (chars.includes(s[s.length - 1])) {
 		end = s[s.length - 1] + end;
 		s = s.slice(0, -1);
 	}
