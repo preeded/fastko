@@ -1,5 +1,6 @@
 # Fastko
-fastko, fast korean translation. 
+fastko, fast korean translation.
+다양한 형태 및 구조의 텍스트를 빠르게 번역하기 위한 확장입니다.
 [naver papago api](https://developers.naver.com/docs/common/openapiguide/)를 사용합니다.
 
 ## Screenshots
