@@ -35,10 +35,12 @@ function processJSONString(s: string): [string, string][] | null {
 	const re = /[\s,]*".+?"/g;
 	const re2 = /".+"/;
 	const re3 = /" \+ [^"\s]+ \+ "/;
+	const re4 = /\t+".+?"/;
 	const found = s.match(re);
 	const check = re3.test(s);
+	const check2 = re4.test(s);
 	let result: [string, string][] = [];
-	if (found !== null && !check) {
+	if (found !== null && !check && check2) {
 		for (let i of found) {
 			const m = i.match(re2);
 			result.push([i, m![0].slice(1, -1)]);
@@ -141,7 +143,8 @@ async function rawTranslate(s: string, id: string, secret: string, src: string, 
 			s = a;
 		}
 	}
-
+	
+	console.log("before: " + s);
 	// API request
 	// eslint-disable-next-line @typescript-eslint/naming-convention
 	const resp = await axios.post("https://openapi.naver.com/v1/papago/n2mt", new URLSearchParams({ source: src, target: t, text: s }), { headers: { 'Accept-Encoding': 'identity', "X-Naver-Client-Id": id, "X-Naver-Client-Secret": secret }, responseType: "json" }).catch((error) => { console.log(error); }); //https://github.com/axios/axios/issues/5298 must set 'Accept-Encoding': 'identity'
@@ -149,6 +152,8 @@ async function rawTranslate(s: string, id: string, secret: string, src: string, 
 		return;
 	}
 	let data = resp.data["message"]["result"]["translatedText"];
+	
+	console.log("after: " + data);
 
 	// Restore
 	data = p.postprocess(data);
@@ -162,12 +167,12 @@ async function rawTranslate(s: string, id: string, secret: string, src: string, 
 async function translate(s: string, id: string, secret: string, src: string, t: string) {
 	const d = processJSON(s);
 	if (d === null) {
-		console.log("not json");
 		const a = processJSONString(s);
 		if (a === null) {
+			console.log("rawTrasnalte process");
 			return await rawTranslate(s, id, secret, src, t);
 		}
-		console.log("not rawTranslate");
+		console.log("json string process");
 		let result: string[] = [];
 		for (const i of a!) {
 			let translated = await rawTranslate(i[1], id, secret, src, t);
@@ -177,6 +182,7 @@ async function translate(s: string, id: string, secret: string, src: string, t: 
 		return result.join('');
 	}
 	else {
+		console.log("json process");
 		let result: string[] = [];
 		for (const i of d) {
 			let translated = await rawTranslate(i[1], id, secret, src, t);
