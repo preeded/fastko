@@ -1,6 +1,8 @@
 # Fastko
 fastko, fast korean translation.
+
 다양한 형태 및 구조의 텍스트를 빠르게 번역하기 위한 확장입니다.
+
 [naver papago api](https://developers.naver.com/docs/common/openapiguide/)를 사용합니다.
 
 ## Screenshots
@@ -13,7 +15,6 @@ fastko, fast korean translation.
 ![4](https://raw.githubusercontent.com/preeded/fastko/main/images/4.png)
 
 ## Features
-
 * 선택된 텍스트 번역
 * source와 target 언어 설정(기본은 en, ko)
 * 역번역(target 언어를 source 언어로)
@@ -23,11 +24,9 @@ fastko, fast korean translation.
 * 다양한 괄호 및 따옴표 처리
 
 ## Requirements
-
 네이버 api의 id와 secret이 필요합니다.
 
 ## Extension Settings
-
 * `fastko.client.id`: naver api id
 * `fastko.client.secret`: naver api secret
 * `fastko.lang.source`: source language
