@@ -4,6 +4,10 @@
   "description": "fastko, fast korean translation. Uses naver papago api.",
   "version": "1.0.0",
   "publisher": "preeded",
+  "author": {
+    "name": "preeded",
+    "email": "preeded@protonmail.com"
+  },
   "engines": {
     "vscode": "^1.73.0"
   },
