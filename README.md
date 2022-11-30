@@ -1,5 +1,6 @@
 # Fastko
-fastko, fast korean translation. Uses [naver papago api](https://developers.naver.com/docs/common/openapiguide/).
+fastko, fast korean translation. 
+[naver papago api](https://developers.naver.com/docs/common/openapiguide/)를 사용합니다.
 
 ## Screenshots
 ![1](https://raw.githubusercontent.com/preeded/fastko/main/images/1.png)
@@ -12,15 +13,16 @@ fastko, fast korean translation. Uses [naver papago api](https://developers.nave
 
 ## Features
 
-* Translate selected text
-* Configure source and target language
-* Recognize special symbol(ex. << and >>), and replace to alphabets(A, B, C...)
-* Preprocess spaces
-* Process json elements("test": "test string", ...)
+* 선택된 텍스트 번역
+* source와 target 언어 설정(기본은 en, ko)
+* 역번역(target 언어를 source 언어로)
+* 특별한 기호를 인식(ex. << and >>), 그리고 알파벳들로 치환, 그 후 복원
+* 공백 전처리
+* JSON 요소들 처리("test": "test string" 및 "string1", "string2", "string3"
 
 ## Requirements
 
-You needs naver api id and secret.
+네이버 api의 id와 secret이 필요합니다.
 
 ## Extension Settings
 
