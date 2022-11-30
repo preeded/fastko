@@ -141,6 +141,7 @@ async function rawTranslate(s: string, id: string, secret: string, src: string, 
 			s = a;
 		}
 	}
+
 	// API request
 	// eslint-disable-next-line @typescript-eslint/naming-convention
 	const resp = await axios.post("https://openapi.naver.com/v1/papago/n2mt", new URLSearchParams({ source: src, target: t, text: s }), { headers: { 'Accept-Encoding': 'identity', "X-Naver-Client-Id": id, "X-Naver-Client-Secret": secret }, responseType: "json" }).catch((error) => { console.log(error); }); //https://github.com/axios/axios/issues/5298 must set 'Accept-Encoding': 'identity'
@@ -148,6 +149,7 @@ async function rawTranslate(s: string, id: string, secret: string, src: string, 
 		return;
 	}
 	let data = resp.data["message"]["result"]["translatedText"];
+
 	// Restore
 	data = p.postprocess(data);
 

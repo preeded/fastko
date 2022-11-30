@@ -19,6 +19,7 @@ fastko, fast korean translation.
 * 특별한 기호를 인식(ex. << and >>), 그리고 알파벳들로 치환, 그 후 복원
 * 공백 전처리
 * JSON 요소들 처리("test": "test string" 및 "string1", "string2", "string3"
+* 다양한 괄호 및 따옴표 처리
 
 ## Requirements
 
